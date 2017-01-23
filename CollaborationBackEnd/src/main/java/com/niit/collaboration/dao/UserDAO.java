@@ -15,7 +15,7 @@ public interface UserDAO {
 		public List<User> list();
 		public User get(String id);
 		public User delete(String id);
-		public User authenticate(String name, String Password);
+		public User authenticate(String id, String Password);
 		public void setOffLine(String userID);
         public void setOnline(String userID);	
 	

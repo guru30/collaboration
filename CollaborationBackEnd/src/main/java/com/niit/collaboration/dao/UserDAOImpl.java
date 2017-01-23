@@ -15,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.niit.collaboration.model.User;
 
 @SuppressWarnings("deprecation")
-@EnableTransactionManagement
-@Repository("userDAO")
 
+@Repository("userDAO")
+@Transactional
 public class UserDAOImpl implements UserDAO {
 	
 	private static final Logger Logger = LoggerFactory.getLogger(UserDAOImpl.class);
@@ -46,9 +46,10 @@ public class UserDAOImpl implements UserDAO {
 			
 			try{
 				sessionFactory.getCurrentSession().update(user);
+				
 		return true;
 			} catch (HibernateException e){
-				//TODO Auto-generated catch block
+
 		       e.printStackTrace();
 		       return false;
 			}
@@ -114,9 +115,9 @@ public class UserDAOImpl implements UserDAO {
 		}
 
 		@Transactional
-		public User authenticate(String name, String password) 
+		public User authenticate(String id, String password) 
 		{
-			String hql="from User where name = " + "'" + name + "'and " + " password='" + password+"'";
+			String hql="from User where Id = " + "'" + id + "'and " + " password='" + password+"'";
 			@SuppressWarnings({ "rawtypes" })
 			Query query=sessionFactory.getCurrentSession().createQuery(hql);
 			
@@ -132,7 +133,7 @@ public class UserDAOImpl implements UserDAO {
 		@Transactional
 		public void setOffLine(String loggedInUserID) {
 			Logger.debug("Starting of the method setOnline");
-			String hql = "UPDATE User SET isOnline = 'N' where userID ='" + loggedInUserID + "'";
+			String hql = "UPDATE User SET isOnline = 'N' where Id ='" + loggedInUserID + "'";
 			Logger.debug("hql: " + hql);
 			Query query = sessionFactory.getCurrentSession().createQuery(hql);
 			query.executeUpdate();
@@ -143,7 +144,7 @@ public class UserDAOImpl implements UserDAO {
 		@Transactional
 		public void setOnline(String loggedInUserID) {
 			Logger.debug("Starting of the method setOffline");
-			String hql = "UPDATE User SET isOnline = 'Y' where userID = '" + loggedInUserID + "'";
+			String hql = "UPDATE User SET isOnline = 'Y' where ID = '" + loggedInUserID + "'";
 			Logger.debug("hql: " + hql);
 			Query query = sessionFactory.getCurrentSession().createQuery(hql);
 			query.executeUpdate();

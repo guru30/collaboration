@@ -110,7 +110,7 @@ public class FriendsDAOImpl implements FriendsDAO {
 
 		@Transactional
 		public List<Friends> getNewFriendRequests(String userID) {
-			String hql = "from Friends where userID=" + "'" + userID + "' and status = '" + "N'";
+			String hql = "from Friends where friendID=" + "'" + userID + "' and status = '" + "N'";
 			@SuppressWarnings("rawtypes")
 			Query query =sessionFactory.getCurrentSession().createQuery(hql);
 			
@@ -119,7 +119,7 @@ public class FriendsDAOImpl implements FriendsDAO {
 			return list;
 		}
 
-		
+	
 		@Transactional
 		public void setOnline(String userID) {
 			Logger.debug("Starting of the method setOnline");
@@ -130,16 +130,44 @@ public class FriendsDAOImpl implements FriendsDAO {
 			Logger.debug("Ending of the method setOnline");
 		}
 		
-
 		@Transactional
 		public void setOffLine(String userID) {
 			Logger.debug("Starting of the method setOffline");
-			String hql = "UPDATE Friend SET isOnline = 'N' where userID = '" + userID + "'";
+			String hql = "UPDATE Friends SET isOnline = 'N' where userID = '" + userID + "'";
 			Logger.debug("hql: " + hql);
 			Query query = sessionFactory.getCurrentSession().createQuery(hql);
 			query.executeUpdate();
 			Logger.debug("Ending of the method setOffline");
 		}
 
-		
+		@Transactional
+		public Friends get(int id) 
+		{
+
+			String hql="from Friends where id = " + "'" + id + "'";
+	
+			@SuppressWarnings({ "rawtypes" })
+			Query query=sessionFactory.getCurrentSession().createQuery(hql);
+			@SuppressWarnings({ "unchecked" })
+			List<Friends> list=query.list();
+			if(list==null || list.isEmpty())
+			{
+				return null;
+			}
+			else
+			{
+				return list.get(0);
+			}
+		}
+		@Transactional
+		public List<Friends> getAllMyFriends(String userID) {
+			String hql1="select friendID as id from Friends where userID='"+userID+"' and status='A'";
+			String hql2 ="select userID as id  from Friends where friendID='"+userID+"' and status='A'";
+			Query query1=sessionFactory.getCurrentSession().createQuery(hql1);
+			Query query2=sessionFactory.getCurrentSession().createQuery(hql2);
+			List<Friends> list1=query1.list();
+			List<Friends> list2=query2.list();
+		    list1.addAll(list2);
+		    return list1;
+		}
 }

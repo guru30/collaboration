@@ -104,7 +104,6 @@ public class UserController {
 	   userDAO.update(user);
 	   return new ResponseEntity<User>(user, HttpStatus.OK);
    }
-   
    @RequestMapping(value = "/user/{id}" , method = RequestMethod.DELETE)
    public ResponseEntity<User> deleteuser (@PathVariable("id") String id, @RequestBody User user)
    {
@@ -143,18 +142,21 @@ public class UserController {
    public ResponseEntity<User> authenticate(@RequestBody User user, HttpSession session)
    {
 	   Logger.debug("->->-> calling method createUser");
-	   user = userDAO.authenticate(user.getName(), user.getPassword());
+	   user = userDAO.authenticate(user.getId(), user.getPassword());
 	   if(user==null)
 	   {
 		   user = new User();
+		   user.setErrorCode("404");
 		   user.setErrorMessage("Invalid Credentials. Please Enter valid credentials");
 	   }
 	   else
 	   {
-		   Logger.debug("->->->User exist with given credentials");
-		   user.setIsOnline('y');
+		   
+		   user.setIsOnline('Y');
 		   userDAO.update(user);
-		   session.setAttribute("loggedInUserID", user.getName());
+		   Logger.debug("->->->User exist with given credentials");
+		   session.setAttribute("loggedInUser", user);
+		   session.setAttribute("loggedInUserID", user.getId());
 		   
 	   }
 	   return new ResponseEntity<User>(user, HttpStatus.OK); 
@@ -163,39 +165,36 @@ public class UserController {
    @RequestMapping(value="/user/logout" , method = RequestMethod.GET)
    public ResponseEntity<User> logout(HttpSession session) {
 	  Logger.debug("->->->->calling method logout");
+	
 	  String loggedInUserID = (String) session.getAttribute("loggedInUserID");
-	 
-	  //friendsDAO.setOffLine(loggedInUserID);
-	  user = userDAO.get(loggedInUserID);
+	
+	 user = userDAO.get(loggedInUserID);
 	  user.setIsOnline('N');
+    friendsDAO.setOffLine(loggedInUserID);
+	  userDAO.setOffLine(loggedInUserID);
 	  
 	  session.invalidate();
-	  
 	  if(userDAO.update(user)){
-		  user = new User();
 		  user.setErrorCode("200");
-		  user.setErrorMessage("you have successfully loggedout ");
-	  }
-	  else
+		  user.setErrorMessage("You successfully loggedout");
+	  }else
 	  {
-		  user.setErrorCode("404");
-		  user.setErrorMessage("you could not logged out");
+		  user.setErrorCode("400");
+		  user.setErrorMessage("You couldnot logout pls contact admin");
 	  }
-	  
-	  return new ResponseEntity<User>(user, HttpStatus.OK);
-	  
+	  return new ResponseEntity<User> (user, HttpStatus.OK);
    }
    
    @RequestMapping(value="/useraccept/{id}" , method = RequestMethod.PUT)
-   public ResponseEntity<User> useraccept(@PathVariable("id") String id)
+   public ResponseEntity<User> useraccept(@PathVariable("id") String id,@RequestBody User user )
    {
-	   user = userDAO.get(id);
+	   user = userDAO.get(user.getId());
 	   if(user==null)
 	   {
 		   Logger.debug("->->->User does not exist with id"+ user.getId());
 		   user = new User();
-		   user.setErrorCode("404");
 		   user.setErrorMessage("User does not exist with id"+ user.getId());
+		   return new ResponseEntity<User>(user, HttpStatus.NOT_FOUND);
 	   }
 	   user.setStatus('A');
 	   userDAO.update(user);
@@ -204,9 +203,9 @@ public class UserController {
    }
    
    @RequestMapping(value="/userreject/{id}" , method = RequestMethod.PUT)
-   public ResponseEntity<User> rejectUser(@PathVariable("id") String id )
+   public ResponseEntity<User> rejectUser(@PathVariable("id") String id , @RequestBody User user)
    {
-	   user = userDAO.get(id);
+	   user = userDAO.get(user.getId());
 	   if(user==null)
 	   {
 		   Logger.debug("->->->User does not exist with id"+ user.getId());

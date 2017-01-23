@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Entity
 @Table(name="c_friend")
 @Component
-public class Friends {
+public class Friends extends BaseDomain{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
