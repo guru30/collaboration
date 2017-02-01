@@ -73,7 +73,7 @@ public class FriendsDAOImpl implements FriendsDAO {
 		
 		@Transactional
 		public Friends get(String userID, String friendID) {
-			String hql = "from Friend where userID=" + "'" + userID + "' and friendID= '" + friendID + "N'";
+			String hql = "from Friends where userID=" + "'" + userID + "' and friendID= '" + friendID + "'";
 			
 			Query query = sessionFactory.getCurrentSession().createQuery(hql);
 			

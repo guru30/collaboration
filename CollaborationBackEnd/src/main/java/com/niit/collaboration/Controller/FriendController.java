@@ -17,6 +17,8 @@ import com.niit.collaboration.dao.FriendsDAO;
 import com.niit.collaboration.model.Friends;
 import com.niit.collaboration.model.User;
 
+
+
 @RestController
 
 public class FriendController {
@@ -52,14 +54,81 @@ public class FriendController {
 	}
 	@RequestMapping(value="/addFriend/{friendID}", method = RequestMethod.POST)
 	public ResponseEntity<Friends> sendFriendRequest(@PathVariable("friendID") String friendID,HttpSession session) {
-		
+		System.out.println("hhhhhhhhhhhhhhhh:"+friendID);
+		//System.out.println("fffffffffffffffff:"+loggedInUser);
 		Logger.debug("->->->calling method sendfriendRequest");
-		User loggedInUser=(User) session.getAttribute("loggedInUser");
-		friends.setUserID(loggedInUser.getId());
+	String loggedInUser=(String) session.getAttribute("loggedInUserID");
+		
+		friends.setUserID(loggedInUser);
 		friends.setFriendID(friendID);
 		friends.setStatus("N");
 		friends.setIsOnline('Y');
-		friendsDAO.save(friends);
+		if(friendsDAO.get(loggedInUser,friendID)!=null){
+			friends=friendsDAO.get(loggedInUser,friendID);
+			if(friends.getStatus().equals("A")){
+				friends.setErrorCode("404");
+				friends.setErrorMessage(friendID+",and You already friends");
+				return new ResponseEntity<Friends>(friends,HttpStatus.OK);
+			}
+			else if(friends.getStatus().equals("R")){
+				friends.setErrorCode("404");
+				friends.setErrorMessage(friendID+",is already rejected your friend request");
+				return new ResponseEntity<Friends>(friends,HttpStatus.OK);
+
+			}else{
+			friends.setErrorCode("404");
+			friends.setErrorMessage("You already send a request");
+			return new ResponseEntity<Friends>(friends,HttpStatus.OK);
+
+			}
+	}
+		else if(friendsDAO.get(friendID, loggedInUser)!=null){
+			friends=friendsDAO.get(friendID, loggedInUser);
+			if(friends.getStatus().equals("A")){
+				friends.setErrorCode("404");
+				friends.setErrorMessage(friendID+" and you are already friends");
+				return new ResponseEntity<Friends>(friends,HttpStatus.OK);
+
+			}else if(friends.getStatus().equals("R")){
+				if(friendsDAO.delete(loggedInUser,friendID)){
+					friends.setStatus("N");
+					friends.setUserID(loggedInUser);
+					friends.setFriendID(friendID);
+					boolean status=friendsDAO.save(friends);
+	if(status==true){
+		friends.setErrorCode("200");
+		friends.setErrorMessage("successfully friend request send");
+		return new ResponseEntity<Friends>(friends,HttpStatus.OK);
+
+	}else{
+		friends.setErrorCode("404");
+		friends.setErrorMessage("error while sending request try after some time");
+		return new ResponseEntity<Friends>(friends,HttpStatus.OK);
+
+	}
+}else{
+				friends.setErrorCode("404");
+				friends.setErrorMessage("error while sending request try after some time");
+				return new ResponseEntity<Friends>(friends,HttpStatus.OK);
+
+				}
+			}else{
+			friends.setErrorCode("404");
+			friends.setErrorMessage(friendID+" ,already send you a request accept it");
+			return new ResponseEntity<Friends>(friends,HttpStatus.OK);
+
+			}
+
+		}
+		boolean status=friendsDAO.save(friends);
+		if(status==true){
+			friends.setErrorCode("200");
+			friends.setErrorMessage("successfully friend request send");
+		}else{
+			friends.setErrorCode("404");
+			friends.setErrorMessage("error while sending request try after some time");
+		}
+			
 		
 		
 		return new ResponseEntity<Friends>(friends, HttpStatus.OK);
